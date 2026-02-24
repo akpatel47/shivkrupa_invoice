@@ -381,6 +381,34 @@ const GeneratePdfInvoice = () => {
   };
 
   useEffect(() => {
+    if (sameAsCustomerAddress) {
+      setShippingLineFirst(billingLineFirst);
+      setShippingLineSecond(billingLineSecond);
+      setShippingLandmark(billingLandmark);
+      setShippingCity(billingCity);
+      setShippingState(billingState);
+      setShippingPincode(billingPincode);
+
+      setValidationErrors((prev) => ({
+        ...prev,
+        shippingAddress: "",
+        shippingLandmark: "",
+        shippingCity: "",
+        shippingState: "",
+        shippingPincode: "",
+      }));
+    }
+  }, [
+    sameAsCustomerAddress,
+    billingLineFirst,
+    billingLineSecond,
+    billingLandmark,
+    billingCity,
+    billingState,
+    billingPincode,
+  ]);
+
+  useEffect(() => {
     setTotalTaxableAmount(0.0);
     seTotalTax(0.0);
     if (itemList.length > 0) {
