@@ -87,10 +87,11 @@ const GeneratePdfInvoice = () => {
   };
 
   const validateGST = (value) => {
-    if (!value || !value.trim()) return "GST number is required";
+    // if (!value || !value.trim()) return "GST number is required";
 
     const gstRegex =
       /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    if (!value || !value.trim()) return "";
     if (!gstRegex.test(value.trim().toUpperCase())) {
       return "Please enter a valid GST number (e.g., 24CDDPG6235K1ZM)";
     }
@@ -386,10 +387,10 @@ const GeneratePdfInvoice = () => {
       itemList.forEach((item) => {
         setTotalTaxableAmount(
           (totalTaxableAmount) =>
-            parseFloat(item.itemTaxble) + parseFloat(totalTaxableAmount)
+            parseFloat(item.itemTaxble) + parseFloat(totalTaxableAmount),
         );
         seTotalTax(
-          (totalTax) => parseFloat(item.taxAmount) + parseFloat(totalTax)
+          (totalTax) => parseFloat(item.taxAmount) + parseFloat(totalTax),
         );
       });
     }
@@ -450,7 +451,7 @@ const GeneratePdfInvoice = () => {
     const gstError = validateGSTPercentage(gst);
 
     const errors = [itemError, rateError, qtyError, sacError, gstError].filter(
-      (error) => error !== ""
+      (error) => error !== "",
     );
 
     if (errors.length > 0) {
@@ -472,7 +473,7 @@ const GeneratePdfInvoice = () => {
 
     const isDuplicate = itemList.some(
       (existingItem) =>
-        existingItem.itemName.toLowerCase() === item.toLowerCase()
+        existingItem.itemName.toLowerCase() === item.toLowerCase(),
     );
 
     if (isDuplicate) {
@@ -488,7 +489,7 @@ const GeneratePdfInvoice = () => {
                      .filter(
                        (existingItem) =>
                          existingItem.itemName.toLowerCase() ===
-                         item.toLowerCase()
+                         item.toLowerCase(),
                      )
                      .map((existingItem) => `<li>${existingItem.itemName}</li>`)
                      .join("")}
@@ -503,7 +504,7 @@ const GeneratePdfInvoice = () => {
     }
 
     const nonEmptyDescriptions = itemDescriptions.filter(
-      (desc) => desc.trim() !== ""
+      (desc) => desc.trim() !== "",
     );
     const uniqueDescriptions = [...new Set(nonEmptyDescriptions)];
     if (uniqueDescriptions.length !== nonEmptyDescriptions.length) {
@@ -592,7 +593,7 @@ const GeneratePdfInvoice = () => {
 
     item.itemTaxble = parseFloat(item.itemRate * item.itemQty);
     item.taxAmount = parseFloat(
-      (item.itemGst * item.itemQty * item.itemRate) / 100
+      (item.itemGst * item.itemQty * item.itemRate) / 100,
     );
     item.amount = parseFloat(item.itemTaxble + item.taxAmount);
 
@@ -661,12 +662,12 @@ const GeneratePdfInvoice = () => {
     errors.shippingState = validateState(shippingState);
     errors.shippingAddress = validateAddress(
       shippingLineFirst,
-      shippingLineSecond
+      shippingLineSecond,
     );
 
     errors.billingAddress = validateBillingAddress(
       billingLineFirst,
-      billingLineSecond
+      billingLineSecond,
     );
     errors.billingCity = validateCity(billingCity);
     errors.billingState = validateState(billingState);
@@ -681,11 +682,11 @@ const GeneratePdfInvoice = () => {
       const uniqueItemNames = [...new Set(itemNames)];
       if (uniqueItemNames.length !== itemNames.length) {
         const duplicates = itemNames.filter(
-          (name, index) => itemNames.indexOf(name) !== index
+          (name, index) => itemNames.indexOf(name) !== index,
         );
         const uniqueDuplicates = [...new Set(duplicates)];
         errors.items = `Duplicate item names found: ${uniqueDuplicates.join(
-          ", "
+          ", ",
         )}`;
         return errors;
       }
@@ -709,12 +710,12 @@ const GeneratePdfInvoice = () => {
 
         if (itemData.itemDescriptions && itemData.itemDescriptions.length > 0) {
           const nonEmptyDescriptions = itemData.itemDescriptions.filter(
-            (desc) => desc.trim() !== ""
+            (desc) => desc.trim() !== "",
           );
           const uniqueDescriptions = [...new Set(nonEmptyDescriptions)];
           if (uniqueDescriptions.length !== nonEmptyDescriptions.length) {
             itemErrors.push(
-              `Item ${index + 1}: Contains duplicate description lines`
+              `Item ${index + 1}: Contains duplicate description lines`,
             );
           }
         }
@@ -838,15 +839,15 @@ const GeneratePdfInvoice = () => {
               <p><strong>Item:</strong> ${item.itemName}</p>
               <p><strong>Rate:</strong> ₹${Intl.NumberFormat(
                 "en-IN",
-                optionsForTwo
+                optionsForTwo,
               ).format(item.itemRate)}</p>
               <p><strong>Quantity:</strong> ${Intl.NumberFormat(
                 "en-IN",
-                optionsForOne
+                optionsForOne,
               ).format(item.itemQty)}</p>
               <p><strong>Amount:</strong> ₹${Intl.NumberFormat(
                 "en-IN",
-                optionsForTwo
+                optionsForTwo,
               ).format(item.amount)}</p>
              </div>`,
       showCancelButton: true,
@@ -859,7 +860,7 @@ const GeneratePdfInvoice = () => {
     }).then(function (result) {
       if (result.isConfirmed) {
         setItemList(
-          itemList.filter((items) => items.itemName !== item.itemName)
+          itemList.filter((items) => items.itemName !== item.itemName),
         );
 
         Swal.fire({
@@ -1091,25 +1092,25 @@ const GeneratePdfInvoice = () => {
                                     updateItemInList(
                                       index,
                                       "itemName",
-                                      e.target.value
+                                      e.target.value,
                                     );
                                     validateTableItemField(
                                       index,
                                       "itemName",
-                                      e.target.value
+                                      e.target.value,
                                     );
                                   }}
                                   onBlur={(e) =>
                                     validateTableItemField(
                                       index,
                                       "itemName",
-                                      e.target.value
+                                      e.target.value,
                                     )
                                   }
                                   onClick={(e) => e.stopPropagation()}
                                   className={`form-control form-control-sm ${getTableFieldValidationClass(
                                     index,
-                                    "itemName"
+                                    "itemName",
                                   )}`}
                                   style={{
                                     width: "100%",
@@ -1161,25 +1162,25 @@ const GeneratePdfInvoice = () => {
                                             updateItemInList(
                                               index,
                                               "itemDescriptions",
-                                              newDescriptions
+                                              newDescriptions,
                                             );
                                             validateTableItemField(
                                               index,
                                               "itemDescriptions",
-                                              e.target.value
+                                              e.target.value,
                                             );
                                           }}
                                           onBlur={(e) =>
                                             validateTableItemField(
                                               index,
                                               "itemDescriptions",
-                                              e.target.value
+                                              e.target.value,
                                             )
                                           }
                                           onClick={(e) => e.stopPropagation()}
                                           className={`form-control form-control-sm ${getTableFieldValidationClass(
                                             index,
-                                            "itemDescriptions"
+                                            "itemDescriptions",
                                           )}`}
                                           style={{
                                             flex: 1,
@@ -1210,7 +1211,7 @@ const GeneratePdfInvoice = () => {
                                               "itemDescriptions",
                                               newDescriptions.length > 0
                                                 ? newDescriptions
-                                                : [""]
+                                                : [""],
                                             );
                                           }}
                                           style={{
@@ -1226,7 +1227,7 @@ const GeneratePdfInvoice = () => {
                                       </div>
                                     )}
                                   </div>
-                                )
+                                ),
                               )}
                               {!isGeneratingPDF && (
                                 <button
@@ -1239,7 +1240,7 @@ const GeneratePdfInvoice = () => {
                                       itemData.itemDescriptions || [""];
                                     const nonEmptyDescriptions =
                                       currentDescriptions.filter(
-                                        (desc) => desc.trim() !== ""
+                                        (desc) => desc.trim() !== "",
                                       );
                                     const uniqueDescriptions = [
                                       ...new Set(nonEmptyDescriptions),
@@ -1269,7 +1270,7 @@ const GeneratePdfInvoice = () => {
                                     updateItemInList(
                                       index,
                                       "itemDescriptions",
-                                      newDescriptions
+                                      newDescriptions,
                                     );
                                   }}
                                   style={{
@@ -1298,25 +1299,25 @@ const GeneratePdfInvoice = () => {
                                   updateItemInList(
                                     index,
                                     "itemSac",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                   validateTableItemField(
                                     index,
                                     "itemSac",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                 }}
                                 onBlur={(e) =>
                                   validateTableItemField(
                                     index,
                                     "itemSac",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 onClick={(e) => e.stopPropagation()}
                                 className={`form-control form-control-sm ${getTableFieldValidationClass(
                                   index,
-                                  "itemSac"
+                                  "itemSac",
                                 )}`}
                                 style={{
                                   minWidth: "80px",
@@ -1338,7 +1339,7 @@ const GeneratePdfInvoice = () => {
                               <div style={{ fontWeight: "bold" }}>
                                 {Intl.NumberFormat(
                                   "en-IN",
-                                  optionsForTwo
+                                  optionsForTwo,
                                 ).format(itemData.itemRate)}
                               </div>
                             ) : (
@@ -1350,25 +1351,25 @@ const GeneratePdfInvoice = () => {
                                   updateItemInList(
                                     index,
                                     "itemRate",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                   validateTableItemField(
                                     index,
                                     "itemRate",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                 }}
                                 onBlur={(e) =>
                                   validateTableItemField(
                                     index,
                                     "itemRate",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 onClick={(e) => e.stopPropagation()}
                                 className={`form-control form-control-sm ${getTableFieldValidationClass(
                                   index,
-                                  "itemRate"
+                                  "itemRate",
                                 )}`}
                                 style={{
                                   minWidth: "80px",
@@ -1389,7 +1390,7 @@ const GeneratePdfInvoice = () => {
                               <div style={{ fontWeight: "bold" }}>
                                 {Intl.NumberFormat(
                                   "en-IN",
-                                  optionsForOne
+                                  optionsForOne,
                                 ).format(itemData.itemQty)}
                               </div>
                             ) : (
@@ -1400,25 +1401,25 @@ const GeneratePdfInvoice = () => {
                                   updateItemInList(
                                     index,
                                     "itemQty",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                   validateTableItemField(
                                     index,
                                     "itemQty",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                 }}
                                 onBlur={(e) =>
                                   validateTableItemField(
                                     index,
                                     "itemQty",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 onClick={(e) => e.stopPropagation()}
                                 className={`form-control form-control-sm ${getTableFieldValidationClass(
                                   index,
-                                  "itemQty"
+                                  "itemQty",
                                 )}`}
                                 style={{
                                   minWidth: "60px",
@@ -1440,7 +1441,7 @@ const GeneratePdfInvoice = () => {
                               <div style={{ fontWeight: "bold" }}>
                                 {Intl.NumberFormat(
                                   "en-IN",
-                                  optionsForOne
+                                  optionsForOne,
                                 ).format(itemData.itemGst)}
                                 %
                               </div>
@@ -1453,25 +1454,25 @@ const GeneratePdfInvoice = () => {
                                   updateItemInList(
                                     index,
                                     "itemGst",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                   validateTableItemField(
                                     index,
                                     "itemGst",
-                                    e.target.value
+                                    e.target.value,
                                   );
                                 }}
                                 onBlur={(e) =>
                                   validateTableItemField(
                                     index,
                                     "itemGst",
-                                    e.target.value
+                                    e.target.value,
                                   )
                                 }
                                 onClick={(e) => e.stopPropagation()}
                                 className={`form-control form-control-sm ${getTableFieldValidationClass(
                                   index,
-                                  "itemGst"
+                                  "itemGst",
                                 )}`}
                                 style={{
                                   minWidth: "60px",
@@ -1490,21 +1491,21 @@ const GeneratePdfInvoice = () => {
                           <td>
                             <b>
                               {Intl.NumberFormat("en-IN", optionsForTwo).format(
-                                itemData.itemTaxble
+                                itemData.itemTaxble,
                               )}
                             </b>
                           </td>
                           <td>
                             <b>
                               {Intl.NumberFormat("en-IN", optionsForTwo).format(
-                                itemData.taxAmount
+                                itemData.taxAmount,
                               )}
                             </b>
                           </td>
                           <td>
                             <b>
                               {Intl.NumberFormat("en-IN", optionsForTwo).format(
-                                itemData.amount
+                                itemData.amount,
                               )}
                             </b>
                           </td>
@@ -1523,7 +1524,7 @@ const GeneratePdfInvoice = () => {
               <div className="col-sm-2">
                 ₹
                 {Intl.NumberFormat("en-IN", optionsForTwo).format(
-                  totalTaxableAmount
+                  totalTaxableAmount,
                 )}
               </div>
             </div>
@@ -1555,7 +1556,7 @@ const GeneratePdfInvoice = () => {
                 <b>
                   ₹
                   {Intl.NumberFormat("en-IN", optionsForTwo).format(
-                    totalTaxableAmount + totalTax
+                    totalTaxableAmount + totalTax,
                   )}
                 </b>
               </div>
@@ -1684,7 +1685,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="Invoice No"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "invoiceNo"
+                              "invoiceNo",
                             )}`}
                           />
                           {fieldTouched.invoiceNo &&
@@ -1703,7 +1704,7 @@ const GeneratePdfInvoice = () => {
                             showIcon
                             id="invoiceDate"
                             className={`form-control ${getFieldValidationClass(
-                              "invoiceDate"
+                              "invoiceDate",
                             )}`}
                             onChange={(date) => {
                               setCurrentDate(date);
@@ -1737,7 +1738,7 @@ const GeneratePdfInvoice = () => {
                             showIcon
                             id="invoiceDueDate"
                             className={`form-control ${getFieldValidationClass(
-                              "dueDate"
+                              "dueDate",
                             )}`}
                             onChange={(date) => {
                               setdueDate(date);
@@ -1786,7 +1787,7 @@ const GeneratePdfInvoice = () => {
                         placeholder="Customer Name *"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "customerName"
+                          "customerName",
                         )}`}
                       />
                       {fieldTouched.customerName &&
@@ -1799,7 +1800,7 @@ const GeneratePdfInvoice = () => {
                   </div>
                   <div className="col-md-6">
                     <div className="form-group">
-                      <label htmlFor="customerGst">Customer GST *</label>
+                      <label htmlFor="customerGst">Customer GST</label>
                       <input
                         type="text"
                         id="customerGst"
@@ -1814,7 +1815,7 @@ const GeneratePdfInvoice = () => {
                         placeholder="Customer GST * (e.g., 24CDDPG6235K1ZM)"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "customerGst"
+                          "customerGst",
                         )}`}
                       />
                       {fieldTouched.customerGst &&
@@ -1843,7 +1844,7 @@ const GeneratePdfInvoice = () => {
                         value={customerEmail}
                         placeholder="customer@example.com"
                         className={`form-control ${getFieldValidationClass(
-                          "customerEmail"
+                          "customerEmail",
                         )}`}
                       />
                       {fieldTouched.customerEmail &&
@@ -1870,7 +1871,7 @@ const GeneratePdfInvoice = () => {
                         value={customerPhone}
                         placeholder="+91-9876543210 or 9876543210"
                         className={`form-control ${getFieldValidationClass(
-                          "customerPhone"
+                          "customerPhone",
                         )}`}
                       />
                       {fieldTouched.customerPhone &&
@@ -1904,21 +1905,21 @@ const GeneratePdfInvoice = () => {
                           validateField(
                             "billingAddress",
                             e.target.value,
-                            billingLineSecond
+                            billingLineSecond,
                           );
                         }}
                         onBlur={(e) =>
                           handleFieldBlur(
                             "billingAddress",
                             e.target.value,
-                            billingLineSecond
+                            billingLineSecond,
                           )
                         }
                         value={billingLineFirst}
                         placeholder="Address Line 1 *"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "billingAddress"
+                          "billingAddress",
                         )}`}
                       />
                       {fieldTouched.billingAddress &&
@@ -1940,20 +1941,20 @@ const GeneratePdfInvoice = () => {
                           validateField(
                             "billingAddress",
                             billingLineFirst,
-                            e.target.value
+                            e.target.value,
                           );
                         }}
                         onBlur={(e) =>
                           handleFieldBlur(
                             "billingAddress",
                             billingLineFirst,
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         value={billingLineSecond}
                         placeholder="Address Line 2 (Optional)"
                         className={`form-control ${getFieldValidationClass(
-                          "billingAddress"
+                          "billingAddress",
                         )}`}
                       />
                       {fieldTouched.billingAddress &&
@@ -1998,7 +1999,7 @@ const GeneratePdfInvoice = () => {
                         placeholder="City *"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "billingCity"
+                          "billingCity",
                         )}`}
                       />
                       {fieldTouched.billingCity &&
@@ -2026,7 +2027,7 @@ const GeneratePdfInvoice = () => {
                         placeholder="State *"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "billingState"
+                          "billingState",
                         )}`}
                       />
                       {fieldTouched.billingState &&
@@ -2056,7 +2057,7 @@ const GeneratePdfInvoice = () => {
                         placeholder="Pincode (6 digits)"
                         required
                         className={`form-control ${getFieldValidationClass(
-                          "billingPincode"
+                          "billingPincode",
                         )}`}
                       />
                       {fieldTouched.billingPincode &&
@@ -2118,21 +2119,21 @@ const GeneratePdfInvoice = () => {
                               validateField(
                                 "shippingAddress",
                                 e.target.value,
-                                shippingLineSecond
+                                shippingLineSecond,
                               );
                             }}
                             onBlur={(e) =>
                               handleFieldBlur(
                                 "shippingAddress",
                                 e.target.value,
-                                shippingLineSecond
+                                shippingLineSecond,
                               )
                             }
                             value={shippingLineFirst}
                             placeholder="Address Line 1 *"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "shippingAddress"
+                              "shippingAddress",
                             )}`}
                           />
                           {fieldTouched.shippingAddress &&
@@ -2156,14 +2157,14 @@ const GeneratePdfInvoice = () => {
                               validateField(
                                 "shippingAddress",
                                 shippingLineFirst,
-                                e.target.value
+                                e.target.value,
                               );
                             }}
                             onBlur={(e) =>
                               handleFieldBlur(
                                 "shippingAddress",
                                 shippingLineFirst,
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             value={shippingLineSecond}
@@ -2187,7 +2188,7 @@ const GeneratePdfInvoice = () => {
                             onBlur={(e) =>
                               handleFieldBlur(
                                 "shippingLandmark",
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             value={shippingLandmark}
@@ -2219,7 +2220,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="City *"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "shippingCity"
+                              "shippingCity",
                             )}`}
                           />
                           {fieldTouched.shippingCity &&
@@ -2247,7 +2248,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="State *"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "shippingState"
+                              "shippingState",
                             )}`}
                           />
                           {fieldTouched.shippingState &&
@@ -2277,7 +2278,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="Pincode (6 digits)"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "shippingPincode"
+                              "shippingPincode",
                             )}`}
                           />
                           {fieldTouched.shippingPincode &&
@@ -2321,7 +2322,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="Item Name"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "item"
+                              "item",
                             )}`}
                           />
                           {fieldTouched.item && validationErrors.item && (
@@ -2360,7 +2361,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="Rate"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "rate"
+                              "rate",
                             )}`}
                           />
                           {fieldTouched.rate && validationErrors.rate && (
@@ -2390,7 +2391,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="Quantity"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "qty"
+                              "qty",
                             )}`}
                           />
                           {fieldTouched.qty && validationErrors.qty && (
@@ -2419,7 +2420,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="SAC (6 or 8 digits)"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "sac"
+                              "sac",
                             )}`}
                           />
                           {fieldTouched.sac && validationErrors.sac && (
@@ -2457,7 +2458,7 @@ const GeneratePdfInvoice = () => {
                             placeholder="GST % (0, 5, 12, 18, 28)"
                             required
                             className={`form-control ${getFieldValidationClass(
-                              "gst"
+                              "gst",
                             )}`}
                           />
                           {fieldTouched.gst && validationErrors.gst && (
@@ -2508,12 +2509,12 @@ const GeneratePdfInvoice = () => {
                                     onClick={() => {
                                       const newDescriptions =
                                         itemDescriptions.filter(
-                                          (_, i) => i !== index
+                                          (_, i) => i !== index,
                                         );
                                       setItemDescriptions(
                                         newDescriptions.length > 0
                                           ? newDescriptions
-                                          : [""]
+                                          : [""],
                                       );
                                     }}
                                   >
@@ -2528,7 +2529,7 @@ const GeneratePdfInvoice = () => {
                               onClick={() => {
                                 const nonEmptyDescriptions =
                                   itemDescriptions.filter(
-                                    (desc) => desc.trim() !== ""
+                                    (desc) => desc.trim() !== "",
                                   );
                                 const uniqueDescriptions = [
                                   ...new Set(nonEmptyDescriptions),
