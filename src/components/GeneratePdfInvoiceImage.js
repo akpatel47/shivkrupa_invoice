@@ -2,12 +2,44 @@ import React, { useRef, useState, useEffect } from "react";
 import moment from "moment/moment";
 import Swal from "sweetalert2";
 import upiImage from "../upiImage.jpg";
-import logo from "../logo black.png";
+import logo from "../logo-black.png";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "sweetalert2/dist/sweetalert2.min.css";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+
+/** Convert image URL to data URL so html2canvas can draw it in all browsers. */
+const toDataURL = (src) =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    img.src = src;
+  });
+
+const waitForImages = (root) =>
+  Promise.all(
+    Array.from(root.querySelectorAll("img")).map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      return new Promise((resolve) => {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      });
+    })
+  );
 
 const GeneratePdfInvoiceImage = () => {
   const swalConfig = {
@@ -881,8 +913,12 @@ const GeneratePdfInvoiceImage = () => {
     });
   };
 
-  const grtPdf = () => {
+  const grtPdf = async () => {
     const input = pdfRef.current;
+    if (!input) {
+      setIsGeneratingPDF(false);
+      return;
+    }
 
     const pdfWidth = 210;
     const pdfHeight = 297;
@@ -890,55 +926,71 @@ const GeneratePdfInvoiceImage = () => {
     const contentWidth = pdfWidth - 2 * margin;
     const contentHeight = pdfHeight - 2 * margin;
 
-    setTimeout(() => {
-      html2canvas(input, {
+    try {
+      // Embed logo/QR as data URLs so browsers don't leave empty boxes in the PDF
+      const images = Array.from(input.querySelectorAll("img"));
+      await Promise.all(
+        images.map(async (img) => {
+          if (img.src && !img.src.startsWith("data:")) {
+            try {
+              img.src = await toDataURL(img.src);
+            } catch (e) {
+              console.warn("Could not convert image for PDF:", e);
+            }
+          }
+        })
+      );
+      await waitForImages(input);
+
+      const canvas = await html2canvas(input, {
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: "#ffffff",
-      })
-        .then((canvas) => {
-          const imgData = canvas.toDataURL("image/png", 1.0);
+        imageTimeout: 15000,
+        logging: false,
+        onclone: (_doc, cloned) => {
+          cloned.querySelectorAll("img").forEach((img) => {
+            img.style.border = "none";
+            img.style.outline = "none";
+            img.style.boxShadow = "none";
+            img.style.background = "transparent";
+          });
+        },
+      });
 
-          const pdf = new jsPDF("p", "mm", "a4");
+      const imgData = canvas.toDataURL("image/png", 1.0);
+      const pdf = new jsPDF("p", "mm", "a4");
 
-          const imgAspectRatio = canvas.width / canvas.height;
-          const pdfAspectRatio = contentWidth / contentHeight;
+      const imgAspectRatio = canvas.width / canvas.height;
+      const pdfAspectRatio = contentWidth / contentHeight;
 
-          let finalWidth, finalHeight;
+      let finalWidth, finalHeight;
 
-          if (imgAspectRatio > pdfAspectRatio) {
-            finalWidth = contentWidth;
-            finalHeight = contentWidth / imgAspectRatio;
-          } else {
-            finalHeight = contentHeight;
-            finalWidth = contentHeight * imgAspectRatio;
-          }
+      if (imgAspectRatio > pdfAspectRatio) {
+        finalWidth = contentWidth;
+        finalHeight = contentWidth / imgAspectRatio;
+      } else {
+        finalHeight = contentHeight;
+        finalWidth = contentHeight * imgAspectRatio;
+      }
 
-          const xOffset = margin + (contentWidth - finalWidth) / 2;
-          const yOffset = margin + (contentHeight - finalHeight) / 2;
+      const xOffset = margin + (contentWidth - finalWidth) / 2;
+      const yOffset = margin + (contentHeight - finalHeight) / 2;
 
-          pdf.addImage(
-            imgData,
-            "PNG",
-            xOffset,
-            yOffset,
-            finalWidth,
-            finalHeight
-          );
+      pdf.addImage(imgData, "PNG", xOffset, yOffset, finalWidth, finalHeight);
 
-          const fileName = `ShivKrupaAC_${
-            invoiceNo + "_" + moment().format("DD_MM_YYYY")
-          }`;
+      const fileName = `ShivKrupaAC_${
+        invoiceNo + "_" + moment().format("DD_MM_YYYY")
+      }`;
 
-          pdf.save(fileName);
+      pdf.save(fileName);
+      setIsGeneratingPDF(false);
 
-          setIsGeneratingPDF(false);
-
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generated Successfully!",
-            html: `<div style="text-align: center;">
+      Swal.fire({
+        icon: "success",
+        title: "PDF Generated Successfully!",
+        html: `<div style="text-align: center;">
                    <p><strong>Invoice PDF has been generated and downloaded.</strong></p>
                    <p><strong>Filename:</strong> ${fileName}</p>
                    <p><strong>Invoice:</strong> ${invoiceNo}</p>
@@ -948,19 +1000,19 @@ const GeneratePdfInvoiceImage = () => {
                      optionsForTwo
                    ).format(totalTaxableAmount + totalTax)}</p>
                   </div>`,
-            confirmButtonText: "Great!",
-            confirmButtonColor: "#28a745",
-            width: "500px",
-            ...swalConfig,
-          });
-        })
-        .catch((error) => {
-          setIsGeneratingPDF(false);
+        confirmButtonText: "Great!",
+        confirmButtonColor: "#28a745",
+        width: "500px",
+        ...swalConfig,
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      setIsGeneratingPDF(false);
 
-          Swal.fire({
-            icon: "error",
-            title: "PDF Generation Failed",
-            html: `<div style="text-align: center;">
+      Swal.fire({
+        icon: "error",
+        title: "PDF Generation Failed",
+        html: `<div style="text-align: center;">
                    <p><strong>An error occurred while generating the PDF.</strong></p>
                    <p>Please try again. If the problem persists, please check:</p>
                    <ul style="text-align: left; margin: 10px 0;">
@@ -969,13 +1021,12 @@ const GeneratePdfInvoiceImage = () => {
                      <li>You have sufficient memory available</li>
                    </ul>
                   </div>`,
-            confirmButtonText: "OK",
-            confirmButtonColor: "#dc3545",
-            width: "500px",
-            ...swalConfig,
-          });
-        });
-    }, 100);
+        confirmButtonText: "OK",
+        confirmButtonColor: "#dc3545",
+        width: "500px",
+        ...swalConfig,
+      });
+    }
   };
 
   return (
@@ -995,6 +1046,14 @@ const GeneratePdfInvoiceImage = () => {
           .swal2-popup-custom {
             background-color: white !important;
             border-radius: 8px !important;
+          }
+          .pdf-content img {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
         `}
       </style>
@@ -1017,6 +1076,13 @@ const GeneratePdfInvoiceImage = () => {
                     height={180}
                     width={450}
                     alt="logo"
+                    crossOrigin="anonymous"
+                    style={{
+                      border: "none",
+                      outline: "none",
+                      display: "block",
+                      background: "transparent",
+                    }}
                   />
                   <small className="float-right">ORIGINAL FOR RECIPIENT</small>
                 </h4>
@@ -1658,6 +1724,13 @@ const GeneratePdfInvoiceImage = () => {
                   height={180}
                   width={180}
                   alt="upiImage"
+                  crossOrigin="anonymous"
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    display: "block",
+                    background: "transparent",
+                  }}
                 />
               </div>
 

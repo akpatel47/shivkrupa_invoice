@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import moment from "moment/moment";
 import Swal from "sweetalert2";
 import upiImage from "../upiImage.jpg";
-import logo from "../logo black.png";
+import logo from "../logo-black.png";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "sweetalert2/dist/sweetalert2.min.css";
